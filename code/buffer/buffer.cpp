@@ -1,6 +1,6 @@
 #include "buffer.h"
 
-Buffer::Buffer(int initSize = 1024):buff_(initSize), writePos_(0), readPos_(0) {}
+Buffer::Buffer(int initSize):buff_(initSize), writePos_(0), readPos_(0) {}
     
 size_t Buffer::WritableBytes() const {
   return buff_.size() - writePos_;
@@ -107,7 +107,7 @@ ssize_t Buffer::ReadFd(int fd, int *Errno) {
 ssize_t Buffer::WriteFd(int fd, int *Errno) {
   size_t readSize = ReadableBytes();
   // struct iovec iov[2];
-  ssize_t len = write(fd, BeginPtr_() + readPos_, readSize);
+  ssize_t len = write(fd, Peek(), readSize);
   if (len < 0) {
     *Errno = errno;
     return len;
@@ -127,7 +127,7 @@ const char* Buffer::BeginPtr_() const {
 
 void Buffer::MakeSpace(size_t len) {
   if (len > WritableBytes() + PrependableBytes()) {
-    buff_.resize(writePos_+len+1);
+    buff_.resize(writePos_ + len + 1);
   } else {
     size_t readable = ReadableBytes();
     std::copy(Peek(), BeginWriteConst(), BeginPtr_());
