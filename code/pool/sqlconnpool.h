@@ -13,7 +13,7 @@ public:
   static SqlConnPool* Instance(); // 单列模式
 
   MYSQL* GETSqlConn(); // 获取一个sql连接
-  void FreeSqlConn(MYSQL *conn); // 释放一个sql连接
+  void FreeSqlConn(MYSQL **conn); // 释放一个sql连接
   int GetFreeConnCount(); // 获取空闲连接数
 
   // Init 初始化数据库

@@ -13,23 +13,24 @@ MYSQL* SqlConnPool::GETSqlConn() {
   }*/
   sem_wait(&semId_);
   {
-      std::lock_guard<std::mutex> locker(mtx_);
-      sql = connQue.front();
-      connQue.pop();
+    std::lock_guard<std::mutex> locker(mtx_);
+    sql = connQue.front();
+    connQue.pop();
   }
   return sql;
 }
 
-void SqlConnPool::FreeSqlConn(MYSQL *conn) {
-  assert(conn);
+void SqlConnPool::FreeSqlConn(MYSQL **conn) {
+  assert(*conn);
   
   std::lock_guard<std::mutex> locker(mtx_);
-  connQue.push(conn);
-
+  connQue.push(*conn);
+  *conn = nullptr;
   sem_post(&semId_);
 }
 
 int SqlConnPool::GetFreeConnCount() {
+  std::lock_guard<std::mutex> locker(mtx_);
   return connQue.size();    
 }
 

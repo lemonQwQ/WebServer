@@ -12,7 +12,7 @@ public:
   }
   ~SqlConnRAII() {
       if (sql_) {
-          pool_->FreeSqlConn(sql_);
+          pool_->FreeSqlConn(&sql_);
       }
   }
 private:
