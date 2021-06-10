@@ -24,6 +24,7 @@ void SqlConnPool::FreeSqlConn(MYSQL **conn) {
   assert(*conn);
   
   std::lock_guard<std::mutex> locker(mtx_);
+  // if (*conn) 
   connQue.push(*conn);
   *conn = nullptr;
   sem_post(&semId_);

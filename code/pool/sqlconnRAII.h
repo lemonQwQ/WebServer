@@ -6,17 +6,17 @@
 class SqlConnRAII {
 public:
   SqlConnRAII(MYSQL **sqlconn, SqlConnPool *connpool) {
-    sql_ = connpool->GETSqlConn();    
-    *sqlconn = sql_;
+    *sqlconn = connpool->GETSqlConn();    
+    sql_ = sqlconn;
     pool_ = connpool;
   }
   ~SqlConnRAII() {
-      if (sql_) {
-          pool_->FreeSqlConn(&sql_);
-      }
+    if (*sql_) {
+      pool_->FreeSqlConn(sql_);
+    }
   }
 private:
-  MYSQL *sql_;
+  MYSQL **sql_;
   SqlConnPool *pool_;
 };
 
