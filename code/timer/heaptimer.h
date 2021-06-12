@@ -16,7 +16,7 @@ typedef std::chrono::milliseconds MS;
 typedef Clock::time_point TimeStamp;
 
 struct TimerNode {
-  int id;
+  int fd;
   TimeStamp expires;
   TimeoutCallBack tcb;
   bool operator<(const TimerNode& tn) const {
@@ -29,11 +29,11 @@ public:
   HeapTimer() { heap_.resize(64); }
   ~HeapTimer() { clear(); }
 
-  void adjust(int id, int newExpires); // 调整结点
+  void adjust(int fd, int newExpires); // 调整结点
 
-  void add(int id, int timeOut, const TimeoutCallBack& cb);  // 添加 \ 更改一个结点
+  void add(int fd, int timeOut, const TimeoutCallBack& tcb);  // 添加 \ 更改一个结点
 
-  void doWork(int id); // 调用回调函数
+  void doWork(int fd); // 调用回调函数
 
   void clear(); // 清除所有结点
 
@@ -44,16 +44,16 @@ public:
   int GetNextTick(); // 取出下一个将要过期的结点
 
 private:
-  void del(size_t idx);  // 删除指定结点
+  void del_(size_t idx);  // 删除指定结点
 
   void siftup_(size_t idx);  // 向上调整
 
-  void siftdown(size_t idx, size_t len); // 向下调整
+  void siftdown_(size_t idx, size_t len); // 向下调整
  
-  void SwapNode(size_t lhs, size_t rhs); // 交换结点
+  void SwapNode_(size_t lhs, size_t rhs); // 交换结点
 private:
   std::vector<TimerNode> heap_; // 堆数组
-  std::unordered_map<int, size_t> ref_;
+  std::unordered_map<int, size_t> ref_; // fd对应在堆数组的位置
 };
 
 #endif // HEAP_TIMER_H_
