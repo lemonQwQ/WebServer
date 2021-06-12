@@ -16,6 +16,10 @@ public:
     }
   }
 private:
+  // 禁止在堆上创建
+  static void* operator new(size_t);
+  static void* operator new[](size_t);
+
   MYSQL **sql_;
   SqlConnPool *pool_;
 };

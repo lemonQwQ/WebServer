@@ -31,23 +31,25 @@ public:
     INTERNAL_ERROR,
     CLOSED_CONNECTION,
   };
-  HttpRequest() { Init(); }
+  HttpRequest();
   ~HttpRequest() = default;
 
-  void Init();
+  // void Init();
   bool parse(Buffer& buff);
 
   std::string path() const;  // 获取请求路径 uri
   std::string& path();  
   std::string method() const; // 获取请求方法
   std::string version() const;  // 获取http版本
-  std::string GetPost(const std::string& key) const;  // 在请求头中获取key对应值
-  std::string GetPost(const char *key) const;
+  // std::string GetPost(const std::string& key) const;  
+  std::string GetPost(const char *key) const; // 在请求头中获取key对应值
+  // std::string GetHeader(const std::string& key);
+  std::string GetHeader(const char *key) const; // 在请求头中获取key对应值
 
   bool IsKeepAlive() const; // 获取 是否保持连接状态
 
 private:
-  void ParseRequestLine_(const std::string& line); // 解析请求行
+  bool ParseRequestLine_(const std::string& line); // 解析请求行
   void ParseHeader_(const std::string& line);  // 解析请求头
   void ParseBody_(const std::string& line); // 解析请求体
 
@@ -57,6 +59,9 @@ private:
 
   // 更新请求用户状态
   static bool UserVerify(const std::string& name, const std::string& pwd, bool isLogin);
+  
+  // 0~f 字符转为 0~15
+  static int ConverHex(char ch);
 
   PARSE_STATE state_;
   std::string method_, path_, version_, body_;
@@ -65,7 +70,6 @@ private:
 
   static const std::unordered_set<std::string> DEFAULT_HTML;
   static const std::unordered_map<std::string, int> DEFAULT_HTML_TAG;
-  static int ConverHex(char ch);
 };
 
 #endif
