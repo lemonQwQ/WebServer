@@ -39,7 +39,7 @@ private:
   char *mmFile_; // 映射内存地址
   struct stat mmFileStat_; // 映射文件属性
 
-  static const std::unordered_map<std::string, std::string> SUFFIX_TYPE; // 根据文件后缀，指定编码方式
+  static const std::unordered_map<std::string, std::string> SUFFIX_TYPE; // 根据文件后缀确定对应MIME类型
   static const std::unordered_map<int, std::string> CODE_STATUS; // 响应码对应的短语
   static const std::unordered_map<int, std::string> CODE_PATH; // 部分响应码对应的静态文件相对路径 
 };
