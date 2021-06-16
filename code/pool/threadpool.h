@@ -61,7 +61,7 @@ private:
     std::mutex mtx;
     std::condition_variable cond;
     bool isClosed;
-    std::queue<std::function<void()>> tasks;
+    std::queue<std::function<void()> > tasks;
   };
   std::shared_ptr<Pool> pool_;
 };

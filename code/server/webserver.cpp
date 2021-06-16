@@ -42,13 +42,13 @@ void WebServer::Start() {
       if (fd == listenFd_) {
         DealListen_();
       } else if (events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR)) {
-        assert(itor == users_.end());
+        assert(itor != users_.end());
         CloseConn_(&itor->second);
       } else if (events & EPOLLIN) {
-        assert(itor == users_.end());
+        assert(itor != users_.end());
         DealRead_(&itor->second);
       } else if (events & EPOLLOUT) {
-        assert(itor == users_.end());
+        assert(itor != users_.end());
         DealWrite_(&itor->second);
       }
     }
@@ -100,12 +100,16 @@ bool WebServer::InitListen_() {
   }
 
   ret = listen(listenFd_, 8);
-  if (ret == 0) {
+  if (ret < 0) {
     // close(listenFd_);
     return false;
   }
+  if (!epoller_->AddFd(listenFd_, listenEventMode_ | EPOLLIN)) {
+    return false;
+  }
+  
   SetFdNonblock(listenFd_);  // 设置监听端口为非阻塞
-  return false;
+  return true;
 }
 
 void WebServer::InitEventMode_(int eventMode) {
@@ -158,13 +162,13 @@ void WebServer::DealListen_() {
 void WebServer::DealWrite_(HttpConn *client) {
   assert(client);
   ExtentTime_(client);
-  threadpool_->AddTask(std::bind(OnWrite_, this, client));
+  threadpool_->AddTask(std::bind(&WebServer::OnWrite_, this, client));
 }
 
 void WebServer::DealRead_(HttpConn *client) {
   assert(client);
   ExtentTime_(client);
-  threadpool_->AddTask(std::bind(OnRead_, this, client));
+  threadpool_->AddTask(std::bind(&WebServer::OnRead_, this, client));
 }
 
 void WebServer::SendError_(int fd, const char *info) {

@@ -125,8 +125,6 @@ void HttpRequest::ParseFromUrlencoded_() {
       body_[i+2] = num % 10 + '0';
       i += 2;
       break;  
-    default:
-      break;
     }    
   }
   if (len <= pre) return;
@@ -222,7 +220,7 @@ bool HttpRequest::IsKeepAlive() const {
   return (connection == "keep-alive" && version_ == "1.1");
 }
 
-static int ConverHex(char ch) {
+int HttpRequest::ConverHex(char ch) {
   if (ch >= 'A' && ch <= 'Z') return ch - 'A' + 10;
   if (ch >= 'a' && ch <= 'z') return ch - 'a' + 10;
   if (ch >= '0' && ch <= '9') return ch - '0';

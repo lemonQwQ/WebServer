@@ -26,7 +26,7 @@ struct TimerNode {
 
 class HeapTimer {
 public:
-  HeapTimer() { heap_.resize(64); }
+  HeapTimer() { heap_.reserve(64); }
   ~HeapTimer() { clear(); }
 
   void adjust(int fd, int newExpires); // 调整结点

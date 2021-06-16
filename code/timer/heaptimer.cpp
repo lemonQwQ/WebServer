@@ -88,8 +88,8 @@ void HeapTimer::siftup_(size_t idx) {
 }
 
 void HeapTimer::siftdown_(size_t idx, size_t len) {
-  assert(idx >= 0 && idx < len);
-  assert(len <= heap_.size());
+  assert(idx >= 0 && idx < heap_.size());
+  assert(len >= 0 && len <= heap_.size());
   size_t i = idx, j = i * 2 + 1;
   while (j < len) {
     if (j + 1 < len && heap_[j+1] < heap_[j]) j++;
