@@ -19,7 +19,7 @@
 class WebServer {
 public:
   WebServer(
-    int port, int EventMode, int timeoutMS, bool OptLinger,
+    int port, int eventMode, int timeoutMS, bool openLinger,
     int sqlPort, const char *sqlUser, const char *sqlPwd,
     const char *dbName, int connPoolNum, int threadNum
   );
@@ -27,11 +27,11 @@ public:
   void Start(); // 启动服务器
 
 private:
-  static int SedFdNonblock(int fd); // 将io处理更改为非阻塞的方式
+  static int SetFdNonblock(int fd); // 将io处理更改为非阻塞的方式
   
-  bool Init_(); // 服务器初始化
-  void InitEventMode_(); // 初始化事件工作模式
-  void AddClient_(); // 添加客户端连接
+  bool InitListen_(); // 服务器监听端口初始化
+  void InitEventMode_(int eventMode); // 初始化事件工作模式
+  void AddClient_(int fd, sockaddr_in addr); // 添加客户端连接
   
   void DealListen_();  // 监听端口 接收新的客户端连接
   void DealWrite_(HttpConn *client); // 添加写事件
@@ -49,10 +49,11 @@ private:
   static const int MAX_FD = 65536; // 2^16 文件描述符的最大数量
 
   int port_; // 服务器端口
+  bool openLinger_; // 是否处理缓冲之后再关闭
   int timeoutMS_; // 链接保留时间
   bool isClose_; // 服务器是否关闭
-  int listenFd; // 监听文件描述符
-  char *srcDir; // 资源目录相对路径
+  int listenFd_; // 监听文件描述符
+  char *srcDir_; // 资源目录相对路径
 
   uint32_t listenEventMode_; // 监听文件描述符对应的事件工作模式
   uint32_t connEventMode_; // 连接文件描述符对应的事件工作模式
