@@ -46,6 +46,8 @@ bool HttpRequest::parse(Buffer& buff) {
       break;
     }
   }
+  LOG_DEBUG("[%s], [%s], [%s]", method_.c_str(), path_.c_str(), version_.c_str());
+  return true;
 }
 
 bool HttpRequest::ParseRequestLine_(const std::string& line) {
@@ -58,6 +60,7 @@ bool HttpRequest::ParseRequestLine_(const std::string& line) {
     state_ = HEADERS;
     return true; 
   }
+  LOG_ERROR("RequestLine Error");
   return false;
 }
 
@@ -66,9 +69,12 @@ void HttpRequest::ParsePath_() {
     path_ = "/index.html";
   } else {
     if (DEFAULT_HTML.find(path_) != DEFAULT_HTML.end()) {
-    path_ += ".html";
+      path_ += ".html";
+    } else {
+      LOG_WARN("path noFound");
     }
   }
+  LOG_DEBUG("parse path: %s", path_.c_str());
 }
 
 void HttpRequest::ParseHeader_(const std::string& line) {
@@ -84,7 +90,8 @@ void HttpRequest::ParseHeader_(const std::string& line) {
 void HttpRequest::ParseBody_(const std::string& line) {
   body_ = line;
   ParsePost_();
-  state_ = FINISH;  
+  state_ = FINISH; 
+  LOG_DEBUG("Body:%s, len:%d", line.c_str(), line.size());
 }
 
 void HttpRequest::ParsePost_() {
@@ -93,6 +100,7 @@ void HttpRequest::ParsePost_() {
     auto itor = DEFAULT_HTML_TAG.find(path_);
     if (itor != DEFAULT_HTML_TAG.end()) {
       int tag = itor->second;
+      LOG_DEBUG("Tag:%d", tag);
       if (UserVerify(post_["username"], post_["password"], tag)) {
         path_ = "/welcome.html";
       } else {
@@ -111,6 +119,7 @@ void HttpRequest::ParseFromUrlencoded_() {
     case '&':
       post_[key] = body_.substr(pre, i - pre);
       pre = i+1;
+      LOG_DEBUG("%s = %s", key.c_str(), post_[key].c_str());
       break;  
     case '=':
       key = body_.substr(pre, i - pre);
@@ -134,6 +143,7 @@ void HttpRequest::ParseFromUrlencoded_() {
 // 更新请求用户状态
 bool HttpRequest::UserVerify(const std::string& name, const std::string& pwd, bool isLogin) {
   if (name == "" || pwd == "") return false;
+  LOG_INFO("Verify name:%s pwd:%s", name.c_str(), pwd.c_str());
   MYSQL *sql;
   char order[256] = { 0 };  
   bool flag = false;
@@ -143,15 +153,17 @@ bool HttpRequest::UserVerify(const std::string& name, const std::string& pwd, bo
   assert(sql);
   
   snprintf(order, 256, "SELECT password FROM user WHERE username = '%s' LIMIT 1", name.c_str());
-
+  LOG_DEBUG("%s", order);
   if (mysql_query(sql, order)) {  // 执行指定为一个空结尾的字符串的SQL查询
     return false;
   }
 
   res = mysql_store_result(sql); // 检索一个完整的结果集
   if (mysql_num_fields(res) > 0) { // 结果集 行数
+    LOG_DEBUG("login!")
     while (MYSQL_ROW row = mysql_fetch_row(res)) { // 获取结果集的下一行
       if (isLogin && pwd == row[0]) {
+        LOG_DEBUG("UserVerify success!");
         flag = true;
       } 
     }
@@ -161,12 +173,15 @@ bool HttpRequest::UserVerify(const std::string& name, const std::string& pwd, bo
   mysql_free_result(res); // 释放结果集
 
   if (!isLogin) {
+    LOG_DEBUG("regirster!")
     bzero(order, 256);
     snprintf(order, 256, "INSERT INTO user(username, password) VALUES('%s', '%s')", name.c_str(), pwd.c_str());
     if (mysql_query(sql, order) == 0) {
+      LOG_DEBUG("Insert success!");
       return true;
     }
   }  
+
   return false;
 }
 

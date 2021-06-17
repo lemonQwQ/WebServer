@@ -42,9 +42,10 @@ HttpResponse::~HttpResponse() {
 }
 
 void HttpResponse::Init(const std::string& srcDir, std::string& path, bool isKeepAlive, int code) {
-  srcDir_ = srcDir_;
-  path_ = path_;
-  isKeepAlive_ = isKeepAlive_;
+  LOG_DEBUG("httpresponse srcDir: %s path: %s code: %d", srcDir.c_str(), path.c_str(), code);
+  srcDir_ = srcDir;
+  path_ = path;
+  isKeepAlive_ = isKeepAlive;
   code_ = code;
   if (mmFile_) { 
     UnmapFile(); 
@@ -82,22 +83,19 @@ size_t HttpResponse::FileLen() const {
 }
 
 void HttpResponse::ErrorConntent(Buffer& buff, std::string message) {
-  const char *status;
+  std::string status;
+  std::string body;
   auto itor = CODE_STATUS.find(code_);
   if (itor != CODE_STATUS.end()) {
-    status = itor->second.c_str();
+    status = itor->second;
   } else {
     status = "Bad Request";
   }
-  char *body = "\
-    <html><title>Error</title>\
-    <body bgcolor=\"ffffff\">\
-    %s : %s\n\
-    <p> %s </p>\
-    <hr><em>TinyWebServer</em></body></html>\
-  ";
-  sprintf(body, std::to_string(code_).c_str(), status, message.c_str());
-  buff.Append("Content-length: " + std::to_string(strlen(body)) +  "\r\n\r\n");
+  body += std::to_string(code_) + " : " + status  + "\n";
+  body += "<p>" + message + "</p>";
+  body += "<hr><em>TinyWebServer</em></body></html>";
+
+  buff.Append("Content-length: " + std::to_string(body.length()) +  "\r\n\r\n");
   buff.Append(body);
 }
 
@@ -124,12 +122,15 @@ void HttpResponse::AddHeader_(Buffer &buff) {
 }
 
 void HttpResponse::AddContent_(Buffer &buff) {
+  LOG_DEBUG("mark1");
   int srcFd = open((srcDir_ + path_).data(), O_RDONLY);
   if (srcFd < 0) {
     ErrorConntent(buff, "File NotFound!");
     return;
   }
+  LOG_DEBUG("mark2");
 
+  LOG_DEBUG("file path %s", (srcDir_ + path_).data());
   int *mmRet = (int *)mmap(nullptr, mmFileStat_.st_size, PROT_READ, MAP_PRIVATE, srcFd, 0);
   if (*mmRet == -1) {
     ErrorConntent(buff, "File NotFound!");
@@ -142,7 +143,7 @@ void HttpResponse::AddContent_(Buffer &buff) {
   
 void HttpResponse::ErrorHtml() {
   auto itor = CODE_PATH.find(code_);
-  if (itor == CODE_PATH.end()) {
+  if (itor != CODE_PATH.end()) {
     path_ = itor->second;
     stat((srcDir_ + path_).data(), &mmFileStat_);
   }

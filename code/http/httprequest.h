@@ -7,6 +7,7 @@
 #include <regex>
 #include <errno.h>
 
+#include "../log/log.h"
 #include "../buffer/buffer.h"
 #include "../pool/sqlconnRAII.h"
 

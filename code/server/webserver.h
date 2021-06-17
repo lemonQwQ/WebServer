@@ -15,13 +15,15 @@
 #include "../http/httpconn.h"
 #include "../pool/sqlconnRAII.h"
 #include "../pool/threadpool.h"
+#include "../log/log.h"
 
 class WebServer {
 public:
   WebServer(
     int port, int eventMode, int timeoutMS, bool openLinger,
     int sqlPort, const char *sqlUser, const char *sqlPwd,
-    const char *dbName, int connPoolNum, int threadNum
+    const char *dbName, int connPoolNum, int threadNum,
+    bool openLog, int logLevel, int logQueSize
   );
   ~WebServer();  
   void Start(); // 启动服务器
