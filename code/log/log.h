@@ -54,10 +54,10 @@ private:
   int level_;  // 当前等级
   bool isAsync_;  // 是否异步
 
-  FILE *fp_;
-  std::unique_ptr<BlockQueue<std::string>> que_; //阻塞队列 线程安全的队列
-  std::unique_ptr<std::thread> writeThread_; //日志专用线程
-  std::mutex mtx;
+  FILE *fp_;  //日志文件
+  std::unique_ptr<BlockQueue<std::string>> que_; //阻塞队列 线程安全的队列 异步使用
+  std::unique_ptr<std::thread> writeThread_; //日志专用线程 异步使用
+  std::mutex mtx_;
 };
 
 #define LOG_BASE(level, format, ...)\

@@ -115,7 +115,7 @@ void BlockQueue<T>::push_back(const T &item) {
   std::unique_lock<std::mutex> locker(mtx_);
   while (que_.size() >= capacity_)
   {
-    condProducter_.wait(locker);
+    condProducer_.wait(locker);
   }
   que_.push_back(item);
   condConsumer_.notify_one();
@@ -126,7 +126,7 @@ void BlockQueue<T>::push_front(const T &item) {
   std::unique_lock<std::mutex> locker(mtx_);
   while (que_.size() >= capacity_)
   {
-    condProducter_.wait(locker);
+    condProducer_.wait(locker);
   }
   que_.push_front(item);
   condConsumer_.notify_one();  
@@ -143,7 +143,7 @@ bool BlockQueue<T>::pop(T &item) {
   }
   
   item = que_.front();
-  que.pop_front();
+  que_.pop_front();
   condProducer_.notify_one();
   return true;
 }
@@ -152,7 +152,7 @@ template<class T>
 bool BlockQueue<T>::pop(T &item, int timeout) {
   std::unique_lock<std::mutex> locker(mtx_);
   while(que_.empty()) {
-    if (condConsumer_.wait_for(locker, timeout)
+    if (condConsumer_.wait_for(locker, std::chrono::seconds(timeout)) 
         == std::cv_status::timeout) {
       return false;
     }
